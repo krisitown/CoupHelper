@@ -1,5 +1,6 @@
 package com.couphelper.krisitown.couphelper;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -13,6 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import res.layout.GameActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,25 +29,37 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         final Intent intent = new Intent(this, GameActivity.class);
+        final Bundle bundle = new Bundle();
+        final Context context = this;
+
+        Button addPlayerButton = (Button)findViewById(R.id.add_player_button);
+        final LinearLayout layout = (LinearLayout)findViewById(R.id.add_players);
+
+        final ArrayList<EditText> playerNames = new ArrayList<>();
+
+        addPlayerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText editText = new EditText(context);
+                editText.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
+                int currentId = editText.generateViewId();
+                layout.addView(editText);
+                playerNames.add(editText);
+            }
+        });
 
         Button button = (Button)findViewById(R.id.startButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Integer numberOfPlayers = Integer.parseInt(((EditText)findViewById(R.id.numberOfPlayers)).getText()
-                        .toString());
-
-                //todo add renaming functionality
-//        for (int i = 0; i < numberOfPlayers; i++) {
-//            EditText editText = new EditText(this);
-//            editText.setLayoutParams(new LinearLayout.LayoutParams(
-//                    LinearLayout.LayoutParams.WRAP_CONTENT,
-//                    LinearLayout.LayoutParams.WRAP_CONTENT));
-//        }
-
-
-                Bundle bundle = new Bundle();
-                bundle.putInt("numberOfPlayers", numberOfPlayers);
+                ArrayList<String> names = new ArrayList<>();
+                for (EditText editText : playerNames) {
+                    names.add(editText.getText().toString());
+                }
+                bundle.putStringArrayList("names", names);
 
                 intent.putExtras(bundle);
                 startActivity(intent);

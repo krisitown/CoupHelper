@@ -14,9 +14,12 @@ import android.widget.TextView;
 import com.couphelper.krisitown.couphelper.MainActivity;
 import com.couphelper.krisitown.couphelper.R;
 
+import java.util.ArrayList;
+
 public class GameActivity extends AppCompatActivity {
     //used to display errors
     private String errors;
+    private ArrayList<String> names;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +35,8 @@ public class GameActivity extends AppCompatActivity {
 
         errors = "";
 
-        Integer numberOfPlayers =  getIntent().getIntExtra("numberOfPlayers", -1);
+        names = getIntent().getStringArrayListExtra("names");
+        Integer numberOfPlayers = names.size();
         final Game game = new Game(numberOfPlayers);
 
         updateText(game, playerHeading, coinsHeading, stats);
@@ -107,11 +111,15 @@ public class GameActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //todo add name implementation
-                Integer playerToStealFrom = Integer.parseInt(targetPlayer.getText().toString());
-                try {
-                    game.stealCoins(playerToStealFrom);
-                } catch (IllegalArgumentException exc) {
-                    errors = exc.getMessage();
+                Integer playerToStealFrom = playerToStealFrom(targetPlayer.getText().toString());
+                if(playerToStealFrom != -1){
+                    try {
+                        game.stealCoins(playerToStealFrom + 1);
+                    } catch (IllegalArgumentException exc) {
+                        errors = exc.getMessage();
+                    }
+                } else {
+                    errors = "Player not found.";
                 }
 
                 updateText(game, playerHeading, coinsHeading, stats);
@@ -129,19 +137,27 @@ public class GameActivity extends AppCompatActivity {
         });
     }
 
-    private void updateText(Game game, TextView playerTurn, TextView currentPlayerCoins, TextView stats){
-        playerTurn.setText("Player" + (game.getCurrentPlayer() + 1) + "'s turn:");
-        currentPlayerCoins.setText("Coins: " + game.getPlayers()[game.getCurrentPlayer()]);
-        stats.setText(createStatSheet(game));
+    private int playerToStealFrom(String playerName){
+        for (String name : names) {
+            if(name.equals(playerName)){
+                return names.indexOf(name);
+            }
+        }
+        return -1;
     }
 
-    private String createStatSheet(Game game){
+    private void updateText(Game game, TextView playerTurn, TextView currentPlayerCoins, TextView stats){
+        playerTurn.setText(names.get(game.getCurrentPlayer()) + "'s turn:");
+        currentPlayerCoins.setText("Coins: " + game.getPlayers()[game.getCurrentPlayer()]);
+        stats.setText(createStatSheet(game, names));
+    }
+
+    private String createStatSheet(Game game, ArrayList<String> names){
         int[] playerStats = game.getPlayers();
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < playerStats.length; i++) {
-            sb.append("Player");
-            sb.append(i + 1);
+            sb.append(names.get(i));
             sb.append(": ");
             sb.append(playerStats[i]);
             sb.append("\n");
